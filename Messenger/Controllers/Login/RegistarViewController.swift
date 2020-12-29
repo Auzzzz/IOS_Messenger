@@ -24,6 +24,9 @@ class RegistarViewController: UIViewController {
         imageView.image = UIImage(systemName: "person") // System image "person" gives a person siloute
         imageView.tintColor = .gray
         imageView.contentMode = .scaleAspectFit
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 2
+        imageView.layer.borderColor = UIColor.lightGray.cgColor
         
         return imageView
     }()
@@ -153,7 +156,7 @@ class RegistarViewController: UIViewController {
     }
     
     @objc private func didTapChangeProfilePic() {
-        print("Change pic called")
+        presentPhotoActionSheet()
     }
     
     override func viewDidLayoutSubviews() {
@@ -167,6 +170,7 @@ class RegistarViewController: UIViewController {
         
         // Display the items
         imageView.frame = CGRect(x: (scrollView.width-size)/2 , y: 20, width: size, height: size)
+        imageView.layer.cornerRadius = imageView.width/2.0
         firstNameFeild.frame = CGRect(x: 30 , y: imageView.bottom + 10, width: scrollView.width - 60, height: 52)
         lastNameFeild.frame = CGRect(x: 30 , y: firstNameFeild.bottom + 10, width: scrollView.width - 60, height: 52)
         emailFeild.frame = CGRect(x: 30 , y: lastNameFeild.bottom + 10, width: scrollView.width - 60, height: 52)
@@ -225,5 +229,56 @@ extension RegistarViewController: UITextFieldDelegate {
         return true
     }
     
+}
+
+
+extension RegistarViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    // Displays an option popup asking the user what way they would like to add a photo
+    func presentPhotoActionSheet(){
+        let actionSheet = UIAlertController(title: "Profile Picture", message: "How would you like to select a picture", preferredStyle: .actionSheet)
+        
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        actionSheet.addAction(UIAlertAction(title: "Take Photo", style: .default, handler: { [weak self] _ in
+            self?.presentCamera()
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Choose Photo ", style: .default, handler: { [weak self] _ in
+            self?.presentPhotoPicker()
+        }))
+        
+        present(actionSheet, animated: true)
+    }
+    
+    func presentCamera(){
+        let vc = UIImagePickerController()
+        vc.sourceType = .camera
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    
+    func presentPhotoPicker(){
+        let vc = UIImagePickerController()
+        vc.sourceType = .photoLibrary
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true, completion: nil)
+        // Get the image from info dict
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage]as? UIImage else{
+            return
+        }
+        // ImgView defined at top
+        self.imageView.image = selectedImage
+    }
+    
+    // Close the picker
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
 }
 
